@@ -15,6 +15,7 @@ WORKDIR /work
 ENV HOME /work
 
 ARG BUILD_VERSION
-RUN echo "$BUILD_VERSION" > /version.txt
+RUN echo "$BUILD_VERSION" > /version.txt && \
+  chown ansible:ansible /version.txt
 
 USER 1000:1000
