@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -yq --no-install-recommends sshpass && \
 RUN groupadd -g 1000 -r ansible && \
   useradd -u 1000 -g 1000 -d /work ansible && \
   mkdir /work && \
-  chmod 755 /work && \
+  chmod 775 /work && \
   chown ansible:ansible /work
 
 WORKDIR /work
