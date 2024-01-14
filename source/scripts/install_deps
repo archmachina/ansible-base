@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Environment var setup
+echo "$0: Env setup"
+if ! . /usr/local/bin/env_setup ; then
+  echo "Could not load env_setup"
+  exit 1
+fi
+
+# Configure venv environment
+echo "$0: Python venv setup"
+if ! python3 -m venv "${ANSIBLE_BASE_VENV_DIR}" ; then
+  echo "Python venv setup failed"
+  exit 1
+fi
+
+# Source python venv environment
+echo "$0: Activating venv"
+if ! . "${ANSIBLE_BASE_VENV_DIR}/bin/activate" ; then
+  echo "Could not load venv environment"
+  exit 1
+fi
+
+# Upgrade pip
+echo "$0: Upgrading pip"
+if ! python3 -m pip install --upgrade pip ; then
+  echo "Could not upgrade pip"
+  exit 1
+fi
+
+# Install python requirements, if present
+if [ -e "${ANSIBLE_BASE_WORK_DIR}/requirements.txt" ] ; then
+  echo "$0: Installing python requirements"
+  if ! python3 -m pip install -r "${ANSIBLE_BASE_WORK_DIR}/requirements.txt" ; then
+    echo "Failed to install pip requirements"
+    exit 1
+  fi
+fi
+
+# Install ansible dependencies, if present
+if [ -e "${ANSIBLE_BASE_WORK_DIR}/requirements.yml" ] ; then
+  # Create collection directory
+  if ! mkdir -p "${ANSIBLE_HOME}/collections" ; then
+    echo "Could not create collections directory"
+    exit 1
+  fi
+
+  # Create roles directory
+  if ! mkdir -p "${ANSIBLE_HOME}/roles" ; then
+    echo "Could not create roles directory"
+    exit 1
+  fi
+
+  echo "$0: Installing ansible collections"
+  if ! ansible-galaxy collection install -r "${ANSIBLE_BASE_WORK_DIR}/requirements.yml" ; then
+    echo "Could not install ansible galaxy collections"
+    exit 1
+  fi
+
+
+  echo "$0: Installing ansible roles"
+  if ! ansible-galaxy role install -r "${ANSIBLE_BASE_WORK_DIR}/requirements.yml" ; then
+    echo "Could not install ansible galaxy roles"
+    exit 1
+  fi
+fi
+
+exit 0
+

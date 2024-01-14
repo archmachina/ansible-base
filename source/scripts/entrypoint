@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Configure environment vars
+echo "$0: Env setup"
+if ! . /usr/local/bin/env_setup ; then
+  echo "Could not load env_setup"
+  exit 1
+fi
+
+export ANSIBLE_BASE_INSTALL_DEPS="${ANSIBLE_BASE_INSTALL_DEPS:-1}"
+
+if [ "${ANSIBLE_BASE_INSTALL_DEPS}" == "1" ] ; then
+  echo "$0: Calling install_deps"
+  if ! /usr/local/bin/install_deps ; then
+    echo "install_deps failed"
+    exit 1
+  fi
+fi
+
+echo "$0: Activating venv"
+if ! . "${ANSIBLE_BASE_VENV_DIR}/bin/activate" ; then
+  echo "Failed to activate venv environment"
+  exit 1
+fi
+
+echo ""
+printenv | grep ^ANSIBLE
+echo ""
+python3 -m pip list
+echo ""
+ansible-galaxy collection list
+echo ""
+ansible-galaxy role list
+echo ""
+ansible-playbook --version
+echo ""
+
+echo "$0: Executing command line args: $@"
+
+exec "$@"
+
+echo "Could not exec command line arguments"
+exit 1
+
