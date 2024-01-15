@@ -7,7 +7,7 @@ if ! . /usr/local/bin/env_setup ; then
   exit 1
 fi
 
-export ANSIBLE_BASE_INSTALL_DEPS="${ANSIBLE_BASE_INSTALL_DEPS:-1}"
+export ANSIBLE_BASE_INSTALL_DEPS="${ANSIBLE_BASE_INSTALL_DEPS:-0}"
 
 if [ "${ANSIBLE_BASE_INSTALL_DEPS}" == "1" ] ; then
   echo "$0: Calling install_deps"
