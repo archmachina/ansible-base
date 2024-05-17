@@ -16,7 +16,7 @@ WORKDIR /work
 ENV HOME /work
 
 COPY scripts/* /usr/local/bin/
-COPY --chown=1000:1000 "./requirements.txt" "./requirements.yml" /work
+COPY --chown=1000:1000 "./requirements.txt" "./requirements.yml" ansible.cfg /work/
 
 ARG BUILD_VERSION
 RUN echo "$BUILD_VERSION" > /version.txt && \
