@@ -7,7 +7,7 @@ vars:
 
   docker_file: "./src/Dockerfile"
   docker_dir: "./src/"
-  docker_login: "archmachina"
+  docker_username: "archmachina"
   docker_host: "docker.io"
   docker_image: "archmachina/ansible-base"
   docker_token: "{{ env.SECRET_REGISTRY_TOKEN }}"
