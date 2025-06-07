@@ -1,5 +1,4 @@
 
 .ansible
 .cache
-source/env
 env/
