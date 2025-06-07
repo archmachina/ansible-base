@@ -1,6 +1,6 @@
 ---
 
-name: pr
+name: pr_branch_main
 on:
   pull_request:
     branches:
@@ -15,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: false
 
       - name: linting
         uses: github/super-linter@v7
@@ -24,8 +24,8 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build:
-    name: "build"
+  pr_branch_main:
+    name: "pr_branch_main"
     runs-on: ubuntu-latest
 
     steps:
@@ -34,7 +34,14 @@ jobs:
         with:
           submodules: true
 
-      - name: build
+      - name: python setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+          cache: 'pip'
+
+      - name: pr_branch_main
         shell: bash
         run: |
-          ./entrypoint build
+          ./entrypoint pr_branch_main
+

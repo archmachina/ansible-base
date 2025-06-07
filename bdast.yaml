@@ -1,0 +1,73 @@
+---
+version: "2alpha"
+
+vars:
+  github_owner: archmachina
+  github_repo: ansible-base
+
+  docker_file: "./src/Dockerfile"
+  docker_dir: "./src/"
+  docker_login: "archmachina"
+  docker_host: "docker.io"
+  docker_image: "archmachina/ansible-base"
+  docker_token: "{{ env.SECRET_REGISTRY_TOKEN }}"
+  docker_build_args:
+    - "VERSION={{ version.full }}"
+
+include:
+  - .bdast/common.yaml
+  - .bdast/github.yaml
+  - .bdast/docker.yaml
+
+actions:
+  clean:
+    steps:
+      - +clean
+
+  test:
+    steps:
+      - +test
+
+  # Standard build
+  build:
+    steps:
+      - +build
+
+  # Steps for a pull request to the main branch
+  pr_branch_main:
+    steps:
+      - +build
+      - +test
+
+  # Steps to perform when building on main branch
+  push_branch_main:
+    steps:
+      - +build
+      - name: Set docker tags
+        vars:
+          set:
+            docker_tags:
+              - main
+              - latest
+      - docker_push
+
+  # Steps to perform when building from a git tag v*
+  push_tag_v:
+    vars:
+      github_release: true
+    steps:
+      - +build
+      - name: Set docker tags
+        vars:
+          set:
+            docker_tags:
+              - "{{ version.major }}"
+              - "{{ version.major }}.{{ version.minor }}"
+              - "{{ version.major }}.{{ version.minor }}.{{ version.patch }}"
+      - docker_push
+      - github_release
+
+  lint:
+    steps:
+      - +lint
+

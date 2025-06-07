@@ -1,98 +1,28 @@
 #!/bin/bash
 
-# Global settings
 set -o pipefail
-SCRIPT_PATH=$(readlink -f "$0")
-SCRIPT_DIR=$(dirname "${SCRIPT_PATH}")
+set -e
 
-# Potential semver version sources. Space separated.
-# shellcheck disable=SC2153
-VERSION_SOURCES="$GITHUB_REF"
+# Global settings
+SCRIPT=$(readlink -f "${0}")
+DIR=$(dirname "${SCRIPT}")
+cd "${DIR}" || exit 1
 
-# Docker Hub information
-DOCKER_IMAGE="archmachina/ansible-base"
-DOCKER_USERNAME="archmachina"
-DOCKER_HOST="docker.io"
+# Configure and activate the virtual environment
+python3 -m venv env
+. ./env/bin/activate
+python3 -m pip install --upgrade pip
 
-# GitHub repo information
-GITHUB_OWNER=archmachina
-GITHUB_REPO=ansible-base
-
-# shellcheck disable=SC1091
-. "${SCRIPT_DIR}/exec/exec_functions"
-
-# Determine version information
-echo "Version Sources: $VERSION_SOURCES"
-VERSION=$(get_semver_match < <(echo "$VERSION_SOURCES"))
-if [ "$VERSION" != "" ]; then
-  # Extract the components of the version
-  assert semver_extract "${VERSION}"
-
-  # Make sure we have valid semver information
-  assert_msg semver_full [ "$SEMVER_FULL" != "" ]
-
-  # Version that can be used in the build process when generating an image
-  BUILD_VERSION="${SEMVER_FULL}"
-
-  # The '+' character isn't valid in a docker tag name, so replace with an
-  # underscore.
-  SEMVER_FULL=${SEMVER_FULL//+/_/}
-
-  # Define all of the tags that will apply for this image
-  TAG_VERSIONS="$TAG_VERSIONS ${SEMVER_FULL}"
-  [ "$SEMVER_PRERELEASE" == "" ] && TAG_VERSIONS="$TAG_VERSIONS ${SEMVER_MAJOR}"
-  [ "$SEMVER_PRERELEASE" == "" ] && TAG_VERSIONS="$TAG_VERSIONS ${SEMVER_MAJOR}.${SEMVER_MINOR}"
-  [ "$SEMVER_PRERELEASE" == "" ] && TAG_VERSIONS="$TAG_VERSIONS ${SEMVER_MAJOR}.${SEMVER_MINOR}.${SEMVER_PATCH}"
-else
-  # No version information. Generate a BUILD_VERSION for the docker build
-  GIT_SHA=$(assert git log -1 --format=%h)
-  BUILD_VERSION="0.1.0-${GIT_SHA}"
+# Install from requirements, if present
+if [ -f requirements.txt ] ; then
+  python3 -m pip install -r ./requirements.txt
 fi
 
-while [ "$1" != "" ] ; do
+# If bdast is already installed from requirements, then this won't
+# change it, otherwise it will install the latest version
+python3 -m pip install bdast
 
-  COMMAND="$1"
-  shift
+exec bdast run "$@"
 
-  case "$COMMAND" in
-    build)
-      IMAGE=$(assert docker build --build-arg BUILD_VERSION="${BUILD_VERSION}" -f ./source/Dockerfile -q ./source)
-      echo "$IMAGE"
-      ;;
+exit 1
 
-    push)
-      assert_msg image_check [ "$IMAGE" != "" ]
-
-      # Log in using supplied token
-      assert docker login --password-stdin -u "${DOCKER_USERNAME}" "${DOCKER_HOST}" < <(echo "${DOCKER_TOKEN}")
-
-      # Push each tag
-      echo "Tag Versions: $TAG_VERSIONS"
-      for TAG in $TAG_VERSIONS ; do
-        [ "$TAG" == "" ] && continue
-
-        # Tag and push the image defined earlier
-        assert docker tag "${IMAGE}" "${DOCKER_IMAGE}:${TAG}"
-        assert docker push "${DOCKER_IMAGE}:${TAG}"
-      done
-      ;;
-
-    release)
-      # Make sure we have valid version information
-      assert_msg version [ "$VERSION" != "" ]
-      assert_msg semver_full [ "$SEMVER_FULL" != "" ]
-
-      # Remove leading refs/tags/
-      VERSION="${VERSION#refs/tags/}"
-
-      # Determine if this is a prerelease
-      GITHUB_PRERELEASE='false'
-      [ "${SEMVER_PRERELEASE}" != "" ] && GITHUB_PRERELEASE='true'
-
-      # Create a new release on GitHub
-      assert github_release -o "${GITHUB_OWNER}" -r "${GITHUB_REPO}" -t "${VERSION}" -d false \
-        -p "${GITHUB_PRERELEASE}" -n "Version ${VERSION}" -a "${GITHUB_TOKEN}" -g
-  esac
-done
-
-exit 0
