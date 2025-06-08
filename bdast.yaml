@@ -16,28 +16,12 @@ vars:
 
 include:
   - .bdast/common.yaml
-  - .bdast/github.yaml
   - .bdast/docker.yaml
 
 actions:
-  clean:
-    steps:
-      - +clean
 
-  test:
-    steps:
-      - +test
-
-  # Standard build
-  build:
-    steps:
-      - +build
-
-  # Steps for a pull request to the main branch
-  pr_branch_main:
-    steps:
-      - +build
-      - +test
+  # Overrides for 'common' actions to perform actions
+  # specific to this repo
 
   # Steps to perform when building on main branch
   push_branch_main:
@@ -66,8 +50,4 @@ actions:
               - "{{ version.major }}.{{ version.minor }}.{{ version.patch }}"
       - docker_push
       - github_release
-
-  lint:
-    steps:
-      - +lint
 
