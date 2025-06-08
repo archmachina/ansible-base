@@ -37,8 +37,6 @@ actions:
 
   # Steps to perform when building from a git tag v*
   push_tag_v:
-    vars:
-      github_release: true
     steps:
       - +build
       - name: Set docker tags
