@@ -1,3 +1,4 @@
+#!/bin/bash
 
 export ANSIBLE_BASE_WORK_DIR="${ANSIBLE_BASE_WORK_DIR:-/work}"
 export ANSIBLE_HOME="${ANSIBLE_HOME:-${ANSIBLE_BASE_WORK_DIR}/.ansible}"

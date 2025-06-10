@@ -2,7 +2,7 @@
 
 # Configure environment vars
 echo "$0: Env setup"
-if ! . /usr/local/bin/env_setup ; then
+if ! . /work/bin/env_setup ; then
   echo "Could not load env_setup"
   exit 1
 fi
@@ -11,16 +11,10 @@ export ANSIBLE_BASE_INSTALL_DEPS="${ANSIBLE_BASE_INSTALL_DEPS:-0}"
 
 if [ "${ANSIBLE_BASE_INSTALL_DEPS}" == "1" ] ; then
   echo "$0: Calling install_deps"
-  if ! /usr/local/bin/install_deps ; then
+  if ! /work/bin/install_deps ; then
     echo "install_deps failed"
     exit 1
   fi
-fi
-
-echo "$0: Activating venv"
-if ! . "${ANSIBLE_BASE_VENV_DIR}/bin/activate" ; then
-  echo "Failed to activate venv environment"
-  exit 1
 fi
 
 echo ""
