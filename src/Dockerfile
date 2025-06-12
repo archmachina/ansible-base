@@ -13,7 +13,7 @@ ENV HOME=/work
 
 # Install any OS packages
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -yq --no-install-recommends sshpass
+RUN apt-get update && apt-get install -yq --no-install-recommends sshpass openssh-client
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Create local user account

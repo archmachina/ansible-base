@@ -48,3 +48,9 @@ class TestCli:
 
         assert ret == 0
 
+    def test_ssh_client(self):
+        # Can we run the ssh client
+        ret = subprocess.call(["ssh", "-V"])
+
+        assert ret == 0
+
