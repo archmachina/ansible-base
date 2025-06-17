@@ -2,29 +2,8 @@
 
 # Environment var setup
 echo "$0: Env setup"
-if ! . /usr/local/bin/env_setup ; then
+if ! . /work/bin/env_setup ; then
   echo "Could not load env_setup"
-  exit 1
-fi
-
-# Configure venv environment
-echo "$0: Python venv setup"
-if ! python3 -m venv "${ANSIBLE_BASE_VENV_DIR}" ; then
-  echo "Python venv setup failed"
-  exit 1
-fi
-
-# Source python venv environment
-echo "$0: Activating venv"
-if ! . "${ANSIBLE_BASE_VENV_DIR}/bin/activate" ; then
-  echo "Could not load venv environment"
-  exit 1
-fi
-
-# Upgrade pip
-echo "$0: Upgrading pip"
-if ! python3 -m pip install --upgrade pip ; then
-  echo "Could not upgrade pip"
   exit 1
 fi
 
