@@ -4,7 +4,7 @@ ARG use_image=base
 
 ################
 # Base image
-FROM python:3.15.0-slim-trixie AS base
+FROM python:3.14.8-slim-trixie AS base
 
 # Work directory
 RUN mkdir -p /work/bin && chmod 777 /work
@@ -13,8 +13,11 @@ ENV HOME=/work
 
 # Install any OS packages
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -yq --no-install-recommends sshpass openssh-client curl gpg
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# hadolint ignore=DL3008
+RUN apt-get update && \
+    apt-get install -yq --no-install-recommends sshpass openssh-client curl gpg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create local user account
 RUN groupadd -g 1000 -r user && \
@@ -23,12 +26,12 @@ USER 1000:1000
 
 # Set up python venv
 RUN python3 -m venv /work/env && \
-    /work/env/bin/pip install --upgrade pip
+    /work/env/bin/pip install --no-cache-dir --upgrade pip
 ENV PATH="/work/env/bin:/work/bin:$PATH"
 
 # Install any python packages
 COPY requirements.txt /work/
-RUN python3 -m pip install -r /work/requirements.txt && \
+RUN python3 -m pip install --no-cache-dir -r /work/requirements.txt && \
     rm -f /work/requirements.txt
 
 COPY entrypoint /work/bin/entrypoint
@@ -44,7 +47,7 @@ COPY tests/entrypoint /work/bin/test-entrypoint
 ENTRYPOINT [ "/work/bin/test-entrypoint" ]
 
 COPY tests/requirements.txt /work/test-requirements.txt
-RUN python3 -m pip install -r /work/test-requirements.txt && \
+RUN python3 -m pip install --no-cache-dir -r /work/test-requirements.txt && \
     rm -f /work/test-requirements.txt
 
 ################
@@ -58,6 +61,6 @@ COPY files/ansible.cfg /work/
 
 # Save build version
 ARG VERSION
-RUN echo "${VERSION}" > /work/build_version.txt
-RUN echo "$(date --iso-8601=seconds)" > /work/build_date.txt
+RUN echo "${VERSION}" > /work/build_version.txt && \
+    date --iso-8601=seconds > /work/build_date.txt
 

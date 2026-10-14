@@ -10,6 +10,8 @@ jobs:
   push_tag_v:
     name: "push_tag_v"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -28,7 +30,6 @@ jobs:
         run: |
           ./entrypoint push_tag_v
         env:
-          SECRET_REGISTRY_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-          SECRET_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SECRET_PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

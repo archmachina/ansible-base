@@ -18,11 +18,6 @@ if [ -f requirements.txt ] ; then
   python3 -m pip install -r ./requirements.txt
 fi
 
-# If bdast is already installed from requirements, then this won't
-# change it, otherwise it will install the latest version
-python3 -m pip install bdast
-
-exec bdast run "$@"
+exec python3 -u ./_entrypoint.py "$@"
 
 exit 1
-
