@@ -3,17 +3,17 @@
 import os
 
 import build_tool
-from build_tool import action, bash, Util
+from build_tool import action, Util
 
-IMAGE = "archmachina/ansible-base"
+REGISTRY_IMAGE = "archmachina/ansible-base"
+REGISTRY_HOST = "docker.io"
+REGISTRY_USER = "archmachina"
 
 # Build Session
 bs = build_tool.BuildSession([f"0.1.0-rolling+{Util.git_sha()}"])
 
 # Container Session
-cs = build_tool.ContainerSession(IMAGE)
-cs.docker_file = "src/Dockerfile"
-cs.container_dir = "src"
+cs = build_tool.ContainerSession(REGISTRY_IMAGE, "src/Dockerfile", "src")
 
 # Testing Session
 ts = build_tool.TestingSession([
@@ -25,6 +25,11 @@ ls = build_tool.LintingSession([
     "docker run --rm -i hadolint/hadolint < ./src/Dockerfile"
 ])
 
+def push_image():
+    # Push image to registry
+    cs.login(REGISTRY_HOST, REGISTRY_USER, os.environ["REGISTRY_TOKEN"])
+    cs.push()
+
 @action
 def test():
     ts.run()
@@ -35,33 +40,32 @@ def lint():
 
 @action
 def build():
+
+    cs.build_args.append(f"VERSION={bs.v_full}")
     cs.build()
 
 @action
-def pr_branch_main():
+def pr_main():
 
     # pr to main just does a build and test
     build()
     test()
 
 @action
-def push_branch_main():
+def push_main():
 
-    # Push to main branch should have a rolling version number
-    # based on the sha
-    cs.build_args = [f"VERSION=0.1.0-rolling+{Util.git_sha()}"]
+    # Commits to main update the registry image main and latest tags
     cs.tags = ["main", "latest"]
-    build()
 
-    # Make sure tests pass for main
+    # Build and test
+    build()
     test()
 
-    # Pushes to main become the 'latest' tag for the docker image
-    cs.login("docker.io", "archmachina", os.environ["DOCKER_HUB_TOKEN"])
-    cs.push()
+    # Push image and tags to registry
+    push_image()
 
 @action
-def push_tag_v():
+def release():
 
     # Make sure we have a github version
     ref = os.environ.get("GITHUB_REF", "")
@@ -72,17 +76,18 @@ def push_tag_v():
     bs.update_version([ref])
 
     # Determine docker image tags and build
-    cs.build_args = [f"VERSION={bs.v_full}"]
     cs.tags = [
         bs.v_major,
         f"{bs.v_major}.{bs.v_minor}",
         f"{bs.v_major}.{bs.v_minor}.{bs.v_patch}",
     ]
-    build()
 
-    # Push image to docker hub
-    cs.login("docker.io", "archmachina", os.environ["DOCKER_HUB_TOKEN"])
-    cs.push()
+    # Build and test
+    build()
+    test()
+
+    # Push image and tags to registry
+    push_image()
 
     # Create a github release for this tag
     Util.github_release(

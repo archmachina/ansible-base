@@ -1,14 +1,14 @@
 ---
 
-name: push_tag_v
+name: release
 on:
   push:
     tags:
       - "v*"
 
 jobs:
-  push_tag_v:
-    name: "push_tag_v"
+  release:
+    name: "release"
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,11 +25,11 @@ jobs:
           python-version: '3.x'
           cache: 'pip'
 
-      - name: push_tag_v
+      - name: release
         shell: bash
         run: |
-          ./entrypoint push_tag_v
+          ./entrypoint release
         env:
-          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+          REGISTRY_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

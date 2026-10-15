@@ -1,6 +1,6 @@
 ---
 
-name: push_branch_main
+name: push_main
 on:
   workflow_dispatch:
   push:
@@ -8,8 +8,8 @@ on:
       - main
 
 jobs:
-  push_branch_main:
-    name: "push_branch_main"
+  push_main:
+    name: "push_main"
     runs-on: ubuntu-latest
 
     steps:
@@ -24,10 +24,9 @@ jobs:
           python-version: '3.x'
           cache: 'pip'
 
-      - name: push_branch_main
+      - name: push_main
         shell: bash
         run: |
-          ./entrypoint push_branch_main
+          ./entrypoint push_main
         env:
-          DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-
+          REGISTRY_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
