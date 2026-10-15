@@ -3,7 +3,7 @@
 import os
 
 import build_tool
-from build_tool import action, Util
+from build_tool import action, bash, Util
 
 REGISTRY_IMAGE = "archmachina/ansible-base"
 REGISTRY_HOST = "docker.io"
@@ -37,6 +37,10 @@ def test():
 @action
 def lint():
     ls.run()
+
+@action
+def clean():
+    bash(f"docker image rm {REGISTRY_IMAGE} --force", ignore_rc=True)
 
 @action
 def build():
