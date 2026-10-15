@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Script just to echo the VAULT_PASS variable
+
+echo $VAULT_PASS
+exit 0
+
